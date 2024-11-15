@@ -1,40 +1,68 @@
 /* Header customization */
 .layout .ant-layout-header {
-  display: flex;
-  align-items: center;
-  background-color: #213547; /* Darker color for better contrast */
-  padding: 0 2rem;
+	display: flex;
+	align-items: center;
+	background-color: #213547; /* Darker color for better contrast */
+	padding: 0 2rem;
 }
 
 .logo {
-  color: #fff;
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-right: 2rem;
+	color: #fff;
+	font-size: 1.5em;
+	font-weight: bold;
+	margin-right: 2rem;
 }
+
+/* For navbar and spacing*/
+.navbar {
+  display: flex;
+  align-items: center;
+}
+.menu-left {
+  display: flex;
+  flex-grow: 1; /* Keeps the left menu items aligned to the left */
+}
+
+.menu-right {
+  margin-left: auto; /* Pushes the "Sign Up" and "Login" buttons to the right */
+  display: flex;
+  gap: 10px; /* Adds space between the buttons */
+}
+
+.menu-right .ant-menu-item {
+  margin: 0; /* Removes default spacing */
+}
+/* End of navbar and spacing */
 
 /* Menu customization */
 .ant-menu {
-  background-color: transparent;
-  border-bottom: none;
-  flex-grow: 1;
+	background-color: transparent;
+	border-bottom: none;
+	flex-grow: 1;
 }
 
 .ant-menu-item {
-  color: #ffffff;
+	color: #ffffff;
 }
 
 .ant-menu-item a {
-  color: #ffffff;
-  transition: color 0.3s;
+	color: #ffffff;
+	transition: color 0.3s;
 }
 
-.ant-menu-item:hover,
 .ant-menu-item-active,
 .ant-menu-item-selected {
-  color: #646cff;
+  background-color: transparent !important; /* Removes the blue highlight background */
+  color: inherit !important; /* Keeps the text color unchanged */
 }
 
 .ant-menu-horizontal > .ant-menu-item::after {
-  border-bottom: 2px solid #646cff; /* Highlighted underline */
+  border-bottom: none !important; /* Removes the underline highlight */
 }
+
+.ant-menu-item:hover {
+  background-color: transparent !important; /* No background change on hover */
+  color: #ffffff !important; /* Changes text color on hover */
+}
+
+
