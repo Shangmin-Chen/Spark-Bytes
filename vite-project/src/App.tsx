@@ -7,12 +7,10 @@ import Login from "./Login";
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph } = Typography;
 
-
 function App() {
 	const [events, setEvents] = useState([]);
 	const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
-  const [, setActiveKey] = useState('1'); // Default key
-  
+	const [, setActiveKey] = useState("1"); // Default key
 
 	useEffect(() => {
 		// Fetch events from the server
@@ -47,26 +45,30 @@ function App() {
 					theme="dark"
 					mode="horizontal"
 					defaultSelectedKeys={["1"]}
-          onClick={({ key }) => setActiveKey(key)} 
+					onClick={({ key }) => setActiveKey(key)}
 					className="navbar"
 				>
 					<div className="menu-left">
 						<Menu.Item key="1">
-							<a href="#about">About</a>
+							<a href="#home-page">Home Page</a>
 						</Menu.Item>
 						<Menu.Item key="2">
-							<a href="#events">Events</a>
+							<a href="#about-us">About Us</a>
 						</Menu.Item>
 						<Menu.Item key="3">
-							<a href="#contact">Contact</a>
+							<a href="#contact-us">Contact Us</a>
 						</Menu.Item>
 					</div>
-					<div className="menu-right">
+					<div>
 						<Menu.Item key="5">
-							<a href="#sign-up">Sign Up</a>
+							<Button type="primary">
+								<a href="#sign-up">Sign Up</a>
+							</Button>
 						</Menu.Item>
-						<Menu.Item key="4" onClick={showLoginModal}>
-							Login
+						<Menu.Item key="4">
+							<Button type="primary" onClick={showLoginModal}>
+								Login
+							</Button>
 						</Menu.Item>
 					</div>
 				</Menu>
