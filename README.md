@@ -38,3 +38,6 @@ List what is needed to run the project:
 ## Deployment
 
 visit https://sparkbytes-cbcb12916fe3.herokuapp.com/
+
+### Presentation
+visit [Google Slides](https://docs.google.com/presentation/d/1WUJ4NKX85KHb8Ybb-ZKkAWRyvcUgOTfjAsP78a053Vw/edit?usp=sharing) 
