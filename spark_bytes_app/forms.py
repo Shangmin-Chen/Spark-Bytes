@@ -4,82 +4,85 @@ from django.contrib.auth.models import User
 
 from spark_bytes_app.models import Event
 
-
-# forms.py
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from .models import User
-
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
-    buid = forms.CharField(label="8-Digit BUID (only numbers) ", max_length=8, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    img = forms.ImageField(label="Profile Picture", required=True)
+    """
+    Custom user registration form extending Django's built-in UserCreationForm.
+    Adds fields for email, BUID, and profile picture.
+    """
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})  # Style email field with a custom class
+    )
+    buid = forms.CharField(
+        label="BUID",
+        max_length=8,
+        widget=forms.TextInput(attrs={'class': 'form-control'})  # Style BUID field with a custom class
+    )
+    img = forms.ImageField(
+        label="Profile Picture",
+        required=True  # Make the profile picture mandatory
+    )
 
     class Meta:
-        model = User  # Make sure User model is the custom user model if you have one
+        """
+        Meta class to specify model and fields to include in the form.
+        """
+        model = User
         fields = ['username', 'email', 'password1', 'password2', 'buid', 'img']
 
     def __init__(self, *args, **kwargs):
+        """
+        Override the initializer to add consistent styling to all form fields.
+        """
         super().__init__(*args, **kwargs)
-        # Apply bootstrap classes to all fields
         for field_name in self.fields:
             self.fields[field_name].widget.attrs.update({'class': 'form-control'})
 
 
 class CustomAuthenticationForm(AuthenticationForm):
-    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    """
+    Custom authentication form extending Django's AuthenticationForm.
+    Adds styling to the username and password fields.
+    """
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control'})  # Style username field
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})  # Style password field
+    )
 
     class Meta:
+        """
+        Meta class to specify fields for authentication.
+        """
         model = User
         fields = ['username', 'password']
 
 
-from django import forms
-from .models import Event
 class EventForm(forms.ModelForm):
-    def clean_latitude(self):
-        latitude = self.cleaned_data.get('latitude')
-        # Remove this validation if latitude is populated by the map
-        if latitude is None:
-            raise forms.ValidationError('Latitude is required.')
-        return round(latitude, 6)  # Round latitude to 6 decimal places
-
-    def clean_longitude(self):
-        longitude = self.cleaned_data.get('longitude')
-        # Remove this validation if longitude is populated by the map
-        if longitude is None:
-            raise forms.ValidationError('Longitude is required.')
-        return round(longitude, 6)  # Round longitude to 6 decimal places
-
+    """
+    Form for creating or updating Event instances.
+    Extends Django's ModelForm to map form fields to the Event model.
+    """
     class Meta:
+        """
+        Meta class to specify the model and fields to include, 
+        along with custom widgets for styling.
+        """
         model = Event
-        fields = ['name', 'img', 'date', 'food_types', 'allergies', 'reservation_limit', 'latitude', 'longitude', 'description', 'location']
+        fields = [
+            'name', 'description', 'img', 'location', 'date', 
+            'food_types', 'allergies', 'reservation_limit'
+        ]
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_name'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'id': 'id_description'}),
-            
-            'img': forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'id_img'}),
-            'date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local', 'id': 'id_date'}),
-            'food_types': forms.Select(attrs={'class': 'form-control', 'id': 'id_food_types'}),
-            'allergies': forms.Select(attrs={'class': 'form-control', 'id': 'id_allergies'}),
-            'reservation_limit': forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_reservation_limit'}),
-            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter latitude', 'step': 'any', 'id': 'id_latitude'}),
-            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter longitude', 'step': 'any', 'id': 'id_longitude'}),
-            'location': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_location', 'placeholder': 'Enter organization name'}) 
+            'name': forms.TextInput(attrs={'class': 'form-control'}),  # Style name field
+            'description': forms.Textarea(attrs={'class': 'form-control'}),  # Style description field
+            'img': forms.ClearableFileInput(attrs={'class': 'form-control'}),  # Style image upload field
+            'location': forms.TextInput(attrs={'class': 'form-control'}),  # Style location field
+            'date': forms.DateTimeInput(attrs={
+                'class': 'form-control', 'type': 'datetime-local'  # Date and time picker
+            }),
+            'food_types': forms.Select(attrs={'class': 'form-control'}),  # Dropdown for food types
+            'allergies': forms.Select(attrs={'class': 'form-control'}),  # Dropdown for allergies
+            'reservation_limit': forms.NumberInput(attrs={'class': 'form-control'})  # Style reservation limit field
         }
-
-
-
-    # Remove the custom validation methods as latitude and longitude are optional
-    # def clean_latitude(self):
-    #     latitude = self.cleaned_data.get('latitude')
-    #     if latitude is None:
-    #         raise forms.ValidationError('Latitude is required.')
-    #     return latitude
-
-    # def clean_longitude(self):
-    #     longitude = self.cleaned_data.get('longitude')
-    #     if longitude is None:
-    #         raise forms.ValidationError('Longitude is required.')
-    #     return longitude
