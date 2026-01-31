@@ -23,7 +23,7 @@
 <div id="map"></div>
 
 <!-- Google Maps API -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQ0VHfBMPDBnibPeYrVuXyfMxLllHHqBY&callback=initMap&libraries=geometry"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&libraries=geometry"></script>
 
 <script>
     var eventsData = JSON.parse('{{ events_json|safe }}');

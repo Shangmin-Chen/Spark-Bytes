@@ -11,21 +11,46 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env()  # Read the .env file
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-bnl(y6d^#nsnlfu0ahnlr_eaig=pp0zk-mo+52feuf=(5qj#&9'
+# SECURITY: Never use a default secret key in production!
+_debug_mode = env('DEBUG', default=True)
+SECRET_KEY = env('SECRET_KEY', default=None)
+
+if not SECRET_KEY:
+    if _debug_mode:
+        # In DEBUG mode, use a temporary insecure key with a warning
+        import warnings
+        warnings.warn(
+            "SECRET_KEY not set! Using temporary insecure key for local development only. "
+            "Set SECRET_KEY in .env for production. "
+            "Generate one with: python -c \"from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())\"",
+            UserWarning
+        )
+        SECRET_KEY = 'django-insecure-temporary-key-for-local-dev-only-change-in-production'
+    else:
+        # In production, fail fast if SECRET_KEY is not set
+        raise ValueError(
+            "SECRET_KEY environment variable must be set in production! "
+            "Generate one with: python -c \"from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())\""
+        )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _debug_mode
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'sparkbytes-cbcb12916fe3.herokuapp.com']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost', 'sparkbytes-cbcb12916fe3.herokuapp.com'])
 
 
 # Application definition
@@ -69,6 +94,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'spark_bytes.context_processors.api_keys',
             ],
         },
     },
@@ -133,77 +159,48 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-
-# settings.py
-import os
-import environ
-
-# Initialize environment variables
-env = environ.Env()
-environ.Env.read_env()  # Read the .env file
-
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')  # Gmail username from environment variables
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')  # Gmail app password from environment variables
-DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER')  # Default sender email
-import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')  # Gmail username from environment variables
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')  # Gmail app password from environment variables
+DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER', default='noreply@sparkbytes.com')  # Default sender email
 
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Ensure this points to your templates directory
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+# Content Security Policy
 CSP_SCRIPT_SRC = [
     "'self'",
     "https://cdn.auth0.com",
 ]
 
+# Google Maps API Configuration
+# Note: This key will be exposed client-side (required for Google Maps)
+# Make sure to restrict the key by domain in Google Cloud Console
+GOOGLE_MAPS_API_KEY = env('GOOGLE_MAPS_API_KEY', default='')
+if not GOOGLE_MAPS_API_KEY:
+    import warnings
+    warnings.warn("GOOGLE_MAPS_API_KEY is not set. Maps will not work.", UserWarning)
 
-# settings.py
-AUTH0_DOMAIN = 'dev-yp3u6zjlilfd2lql.us.auth0.com'
-AUTH0_CLIENT_ID = 'hf5h8aJdhA8KRsVsolSBbCfCUQPFqDRP'
-AUTH0_CLIENT_SECRET = 'OJtltkZpAyWTnX-8I9IqozTahjBjezsX2g0aPaC3JvgHwTG1aCNPQJXpZdUbvedZ'
-AUTH0_CALLBACK_URL = 'http://127.0.0.1:8000/auth0/callback/'
- # Replace with your actual callback URL
-AUTH0_API_IDENTIFIER = "https://your-api-identifier/"  # Optional if you're calling an API
+# Auth0 Configuration
+# SECURITY: These should be set via environment variables, especially AUTH0_CLIENT_SECRET
+AUTH0_DOMAIN = env('AUTH0_DOMAIN', default='')
+AUTH0_CLIENT_ID = env('AUTH0_CLIENT_ID', default='')
+# SECURITY WARNING: Client secret should NEVER have a default value in production
+# Only allow empty default in DEBUG mode for local development convenience
+AUTH0_CLIENT_SECRET = env('AUTH0_CLIENT_SECRET', default='')
+if not DEBUG and not AUTH0_CLIENT_SECRET:
+    raise ValueError("AUTH0_CLIENT_SECRET must be set in production!")
+# Use production callback URL if DEBUG is False (production)
+# Note: DEBUG is defined above, so we can reference it here
+default_callback = 'https://sparkbytes-cbcb12916fe3.herokuapp.com/auth0/callback/' if not DEBUG else 'http://127.0.0.1:8000/auth0/callback/'
+AUTH0_CALLBACK_URL = env('AUTH0_CALLBACK_URL', default=default_callback)
+AUTH0_API_IDENTIFIER = env('AUTH0_API_IDENTIFIER', default='https://your-api-identifier/')
 AUTH0_JWKS_URI = f"https://{AUTH0_DOMAIN}/.well-known/jwks.json"
-
-LOGIN_URL = '/login'
-LOGOUT_URL = '/logout'
-LOGIN_REDIRECT_URL = '/'
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',  # Ensure this is included
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    # Your other apps
-    'spark_bytes_app',  # Your app
-    'spark_bytes',
-]
 

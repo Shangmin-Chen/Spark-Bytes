@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, FormView, CreateView
@@ -9,6 +10,10 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.conf import settings
+from email.mime.image import MIMEImage
+import json
+import base64
 
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, EventForm
 from .models import Profile, Event
@@ -161,7 +166,7 @@ class ReserveSpotView(LoginRequiredMixin, DetailView):
     def post(self, request, *args, **kwargs):
         """
         Handles the reservation process, including checking for available spots,
-        adding the user to the reservation list, and generating a QR code.
+        adding the user to the reservation list, generating a QR code, and sending confirmation email.
         """
         event = self.get_object()
         profile = Profile.objects.get(user=request.user)
@@ -177,10 +182,48 @@ class ReserveSpotView(LoginRequiredMixin, DetailView):
         qr_code_data = generate_qr_code(unique_data)
         event.save()
 
+        # Send confirmation email with QR code
+        try:
+            self._send_reservation_email(event, profile, qr_code_data)
+        except Exception as e:
+            # Log error but don't fail the reservation if email fails
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send reservation email: {str(e)}")
+
         return JsonResponse({
             'message': 'Reservation successful!',
             'qr_code': qr_code_data
         }, status=200)
+
+    def _send_reservation_email(self, event, profile, qr_code_data):
+        """
+        Sends a confirmation email with QR code to the user who reserved a spot.
+        """
+        # Render email template
+        html_content = render_to_string('spark_bytes/email/qr_code_email.html', {
+            'event': event,
+            'profile': profile,
+        })
+        text_content = strip_tags(html_content)
+
+        # Create email
+        subject = f'Reservation Confirmation: {event.name}'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to_email = [profile.user.email]
+
+        email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+        email.attach_alternative(html_content, "text/html")
+
+        # Attach QR code as inline image
+        qr_image_data = base64.b64decode(qr_code_data)
+        qr_image = MIMEImage(qr_image_data)
+        qr_image.add_header('Content-ID', '<qr_code>')
+        qr_image.add_header('Content-Disposition', 'inline', filename='qr_code.png')
+        email.attach(qr_image)
+
+        # Send email
+        email.send()
 
 
 class CustomLoginView(LoginView):
@@ -224,3 +267,113 @@ class DeleteEventView(UserPassesTestMixin, DetailView):
         event = self.get_object()
         event.delete()
         return JsonResponse({'message': 'Event deleted successfully!'}, status=200)
+
+
+def auth0_callback(request):
+    """
+    Handles Auth0 OAuth callback.
+    Since the frontend uses Auth0 SPA SDK which handles OAuth client-side,
+    this endpoint receives user info from the frontend after Auth0 authentication
+    and creates/logs in the Django user.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            name = data.get('name', '')
+            sub = data.get('sub', '')  # Auth0 user ID
+            
+            if not email:
+                return JsonResponse({'error': 'Email is required'}, status=400)
+            
+            # Get or create user
+            username = email.split('@')[0]  # Use email prefix as username
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': username,
+                    'first_name': name.split()[0] if name else '',
+                    'last_name': ' '.join(name.split()[1:]) if len(name.split()) > 1 else '',
+                }
+            )
+            
+            # If user already exists but username is different, update it
+            if not created and user.username != username:
+                # Handle username conflicts
+                counter = 1
+                original_username = username
+                while User.objects.filter(username=username).exclude(id=user.id).exists():
+                    username = f"{original_username}{counter}"
+                    counter += 1
+                user.username = username
+                user.save()
+            
+            # Get or create profile
+            profile, profile_created = Profile.objects.get_or_create(
+                user=user,
+                defaults={'buid': '00000000'}  # Default BUID, user can update later
+            )
+            
+            # Log in the user
+            login(request, user)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Successfully authenticated',
+                'redirect': '/'
+            })
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    # For GET requests, redirect to home (frontend handles OAuth flow)
+    return redirect('all_events')
+
+
+def registration_success(request):
+    """
+    Displays the registration success page.
+    """
+    return render(request, 'spark_bytes/registration_success.html')
+
+
+class EventMapView(ListView):
+    """
+    Displays events on a map. Provides events as JSON for map rendering.
+    """
+    model = Event
+    template_name = 'spark_bytes/event_map.html'
+    context_object_name = 'events'
+
+    def get_queryset(self):
+        """
+        Returns events that have latitude and longitude coordinates.
+        """
+        return Event.objects.filter(
+            latitude__isnull=False,
+            longitude__isnull=False
+        ).exclude(latitude=0, longitude=0)
+
+    def get_context_data(self, **kwargs):
+        """
+        Adds events as JSON for map rendering.
+        """
+        context = super().get_context_data(**kwargs)
+        events = self.get_queryset()
+        
+        # Serialize events for map
+        events_data = []
+        for event in events:
+            events_data.append({
+                'id': event.id,
+                'name': event.name,
+                'latitude': float(event.latitude),
+                'longitude': float(event.longitude),
+                'location': event.location,
+                'date': event.date.isoformat() if event.date else None,
+                'image_url': event.img.url if event.img else '',
+            })
+        
+        context['events_json'] = json.dumps(events_data)
+        return context

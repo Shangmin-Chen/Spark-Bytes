@@ -28,34 +28,71 @@ python 3.10
 
 ## Installation
 
-1. Clone the repository:
-    To clone the repository, replace `<USERNAME>` with your GitHub username:
+1. **Clone the repository:**
+   To clone the repository, replace `<USERNAME>` with your GitHub username:
 
-    ```bash
-    git clone https://github.com/<USERNAME>/Spark-Bytes.git
-    cd Spark-Bytes
+   ```bash
+   git clone https://github.com/Shangmin-Chen/Spark-Bytes.git
+   cd Spark-Bytes
+   ```
 
-2. Create Venv (Optional):
-    ```bash
-    python3.10 -m venv venv
-    source venv/bin/activate 
+2. **Create Virtual Environment (Recommended):**
+   ```bash
+   python3.10 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-3. Install Depdencies:
-    ```bash
-    pip install -r requirements.txt
+3. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Running the application
+4. **Set Up Environment Variables:**
+   Create a `.env` file in the `spark_bytes` directory based on the example file:
+   
+   ```bash
+   cd spark_bytes
+   cp .env.example .env
+   ```
+   
+   Then edit the `.env` file and fill in all the required values:
+   - **SECRET_KEY**: Generate a new Django secret key (see instructions in `.env.example`)
+   - **EMAIL_HOST_USER** and **EMAIL_HOST_PASSWORD**: Your Gmail credentials (requires Gmail App Password)
+   - **GOOGLE_MAPS_API_KEY**: Your Google Maps API key
+   - **AUTH0_***: Your Auth0 configuration values
+   
+   For detailed setup instructions for each service, see [SETUP.md](SETUP.md).
 
-1. Run the application:
-    ```bash
-    python3 manage.py runserver
+5. **Run Database Migrations:**
+   ```bash
+   cd ..
+   python manage.py migrate
+   ```
 
-2. Open web browser
-    Visit: http://127.0.0.1:8000/
+6. **Create Superuser (Optional):**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+## Running the Application
+
+1. **Start the development server:**
+   ```bash
+   python manage.py runserver
+   ```
+
+2. **Open your web browser:**
+   Visit: http://127.0.0.1:8000/
+
+3. **Test the application:**
+   - Create an account or log in with Auth0
+   - Browse events and view them on the map
+   - Create a new event (if logged in)
+   - Register for an event to receive a confirmation email with QR code
 
 ## Deployment
 
-visit https://sparkbytes-cbcb12916fe3.herokuapp.com/
+visit spark-bytes.shangmin.me
 
 ## Presentation link
 https://docs.google.com/presentation/d/1WUJ4NKX85KHb8Ybb-ZKkAWRyvcUgOTfjAsP78a053Vw/edit?usp=sharing

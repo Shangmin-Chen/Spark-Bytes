@@ -23,45 +23,22 @@ from spark_bytes_app.views import (
     ReserveSpotView, DeleteEventView, EventMapView, auth0_callback, registration_success
 )
 
-  # Adjust imports as needed
-from django.urls import path
-from spark_bytes_app.views import auth0_callback, EventListView
-
-
-from django.urls import path
-from spark_bytes_app import views
-
-
 urlpatterns = [
-
-
-
-    # In your Django urls.py
-    path('events/<int:pk>/', views.EventDetailView.as_view(), name='event_detail'),
-    # Ensure this view exists
-
-
-    path('registration_success/', registration_success, name='registration_success'),
-
-
-
     path('admin/', admin.site.urls),
     path('', EventListView.as_view(), name='all_events'),
     path('profiles/', ProfileListView.as_view(), name='all_profiles'),
     path('profile/<int:pk>/', ProfileDetailView.as_view(), name='profile_detail'),
     path('event/<int:pk>/', EventDetailView.as_view(), name='event_detail'),
+    path('events/<int:pk>/', EventDetailView.as_view(), name='event_detail_alt'),
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('register/', RegisterView.as_view(), name='register'),
+    path('registration_success/', registration_success, name='registration_success'),
     path('create_event/', CreateEventView.as_view(), name='create_event'),
     path('events/<int:pk>/reserve/', ReserveSpotView.as_view(), name='reserve_spot'),
     path('event/<int:pk>/delete/', DeleteEventView.as_view(), name='delete_event'),
     path('events/map/', EventMapView.as_view(), name='event_map'),
-    path('auth0/callback/', views.auth0_callback, name='auth0_callback'),
-
-
-   
-    
+    path('auth0/callback/', auth0_callback, name='auth0_callback'),
 ]
 
 if settings.DEBUG:

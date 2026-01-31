@@ -57,13 +57,13 @@
             try {
                 // Initialize Auth0 Client
                 auth0Client = await auth0.createAuth0Client({
-                    domain: "dev-yp3u6zjlilfd2lql.us.auth0.com",
-                    clientId: "hf5h8aJdhA8KRsVsolSBbCfCUQPFqDRP",
+                    domain: "{{ AUTH0_DOMAIN }}",
+                    clientId: "{{ AUTH0_CLIENT_ID }}",
                     cacheLocation: 'localstorage',
                     useRefreshTokens: true,
                     authorizationParams: {
                         // Ensure the redirect_uri is correctly set for handling the callback
-                        redirect_uri: "http://127.0.0.1:8000/auth0/callback/",
+                        redirect_uri: "{{ AUTH0_CALLBACK_URL }}",
                         response_type: 'code',
                         scope: 'openid profile email'
                     }

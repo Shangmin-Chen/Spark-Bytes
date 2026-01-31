@@ -1,5 +1,5 @@
-Django==3.2.5
-gunicorn==20.1.0
+Django
+gunicorn
 whitenoise
 Pillow
 plotly
