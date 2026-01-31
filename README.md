@@ -24,71 +24,150 @@ Spark Bytes is a web application designed for Boston University students and fac
 
 
 ## Prerequisites
-python 3.10
+
+Before installing Spark Bytes, ensure you have the following installed on your system:
+
+- **Python 3.10** or higher
+- **Node.js** (v14 or higher) and **npm** (for frontend dependencies)
+- **Git** (for cloning the repository)
+
+### Verify Prerequisites
+
+Check your installations:
+
+```bash
+python3 --version  # Should show Python 3.10 or higher
+node --version     # Should show v14 or higher
+npm --version      # Should show npm version
+git --version      # Should show git version
+```
 
 ## Installation
 
-1. **Clone the repository:**
-   To clone the repository, replace `<USERNAME>` with your GitHub username:
+Follow these steps to set up Spark Bytes on your local machine:
 
-   ```bash
-   git clone https://github.com/Shangmin-Chen/Spark-Bytes.git
-   cd Spark-Bytes
-   ```
+### 1. Clone the Repository
 
-2. **Create Virtual Environment (Recommended):**
-   ```bash
-   python3.10 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+```bash
+git clone https://github.com/Shangmin-Chen/Spark-Bytes.git
+cd Spark-Bytes
+```
 
-3. **Install Dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2. Create and Activate Virtual Environment
 
-4. **Set Up Environment Variables:**
-   Create a `.env` file in the `spark_bytes` directory based on the example file:
-   
-   ```bash
-   cd spark_bytes
-   cp .env.example .env
-   ```
-   
-   Then edit the `.env` file and fill in all the required values:
-   - **SECRET_KEY**: Generate a new Django secret key (see instructions in `.env.example`)
-   - **EMAIL_HOST_USER** and **EMAIL_HOST_PASSWORD**: Your Gmail credentials (requires Gmail App Password)
-   - **GOOGLE_MAPS_API_KEY**: Your Google Maps API key
-   - **AUTH0_***: Your Auth0 configuration values
-   
-   For detailed setup instructions for each service, see [SETUP.md](SETUP.md).
+It's recommended to use a virtual environment to isolate project dependencies:
 
-5. **Run Database Migrations:**
-   ```bash
-   cd ..
-   python manage.py migrate
-   ```
+**On macOS/Linux:**
+```bash
+python3.10 -m venv venv
+source venv/bin/activate
+```
 
-6. **Create Superuser (Optional):**
-   ```bash
-   python manage.py createsuperuser
-   ```
+**On Windows:**
+```bash
+python3.10 -m venv venv
+venv\Scripts\activate
+```
+
+You should see `(venv)` in your terminal prompt when the virtual environment is active.
+
+### 3. Install Python Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+This installs the Auth0 SPA JavaScript SDK required for authentication.
+
+### 5. Set Up Environment Variables
+
+Create a `.env` file in the `spark_bytes` directory:
+
+```bash
+cd spark_bytes
+cp .env.example .env
+```
+
+Then edit the `.env` file and fill in all the required values:
+
+- **SECRET_KEY**: Generate a Django secret key using:
+  ```bash
+  python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+  ```
+  Copy the output and paste it as the value for `SECRET_KEY` in your `.env` file.
+
+- **EMAIL_HOST_USER** and **EMAIL_HOST_PASSWORD**: 
+  - Use your Gmail address for `EMAIL_HOST_USER`
+  - Generate a Gmail App Password at https://myaccount.google.com/apppasswords
+  - Use the app password (not your regular Gmail password) for `EMAIL_HOST_PASSWORD`
+
+- **GOOGLE_MAPS_API_KEY**: 
+  - Get your API key from https://console.cloud.google.com/apis/credentials
+  - Enable the Maps JavaScript API and Places API in your Google Cloud project
+
+- **AUTH0 Configuration** (AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_CALLBACK_URL, AUTH0_API_IDENTIFIER):
+  - Create an account at https://auth0.com/
+  - Create a new application in your Auth0 dashboard
+  - Set the callback URL to `http://127.0.0.1:8000/auth0/callback/` for local development
+  - Copy the domain, client ID, and client secret from your Auth0 application settings
+  - Create an API in Auth0 and use its identifier for `AUTH0_API_IDENTIFIER`
+
+**Important:** Make sure you're back in the project root directory before proceeding:
+
+```bash
+cd ..
+```
+
+### 6. Run Database Migrations
+
+Set up the database schema:
+
+```bash
+python manage.py migrate
+```
+
+### 7. Create Superuser (Optional)
+
+Create an admin account to access the Django admin panel:
+
+```bash
+python manage.py createsuperuser
+```
+
+Follow the prompts to set up your admin username, email, and password.
 
 ## Running the Application
 
-1. **Start the development server:**
+### Development Mode
+
+1. **Make sure your virtual environment is activated:**
+   ```bash
+   source venv/bin/activate  # On macOS/Linux
+   # or
+   venv\Scripts\activate     # On Windows
+   ```
+
+2. **Start the development server:**
    ```bash
    python manage.py runserver
    ```
 
-2. **Open your web browser:**
+3. **Open your web browser:**
    Visit: http://127.0.0.1:8000/
 
-3. **Test the application:**
+4. **Test the application:**
    - Create an account or log in with Auth0
    - Browse events and view them on the map
    - Create a new event (if logged in)
    - Register for an event to receive a confirmation email with QR code
+
+**Note:** The development server will automatically reload when you make changes to your code. Press `Ctrl+C` in the terminal to stop the server.
 
 ## Production Server
 
