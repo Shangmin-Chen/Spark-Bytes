@@ -90,9 +90,48 @@ python 3.10
    - Create a new event (if logged in)
    - Register for an event to receive a confirmation email with QR code
 
+## Production Server
+
+To run the application in production mode:
+
+1. **Set Production Environment Variables:**
+   Make sure your `.env` file has production settings:
+   ```bash
+   DEBUG=False
+   ALLOWED_HOSTS=PROD_WEBSITE,127.0.0.1,localhost
+   AUTH0_CALLBACK_URL=https://PROD_WEBSITE/auth0/callback/
+   ```
+   Ensure all other required environment variables are set (SECRET_KEY, AUTH0_*, EMAIL_*, etc.)
+
+2. **Collect Static Files:**
+   ```bash
+   python manage.py collectstatic --noinput
+   ```
+
+3. **Run Database Migrations:**
+   ```bash
+   python manage.py migrate
+   ```
+
+4. **Start the Production Server with Gunicorn:**
+   ```bash
+   gunicorn spark_bytes.wsgi --bind 0.0.0.0:8000
+   ```
+   
+   For better production setup, you can use additional options:
+   ```bash
+   gunicorn spark_bytes.wsgi --bind 0.0.0.0:8000 --workers 4 --timeout 120 --access-logfile - --error-logfile -
+   ```
+
+5. **Using a Process Manager (Recommended):**
+   For production deployments, consider using a process manager like `systemd` or `supervisor` to keep the server running and automatically restart on failure.
+
+6. **Reverse Proxy Setup:**
+   It's recommended to use a reverse proxy like Nginx or Apache in front of Gunicorn for better performance, SSL termination, and static file serving.
+
 ## Deployment
 
-visit spark-bytes.shangmin.me
+Visit [Spark Bytes Live Demo](spark-bytes.shangmin.me)
 
 ## Presentation link
 https://docs.google.com/presentation/d/1WUJ4NKX85KHb8Ybb-ZKkAWRyvcUgOTfjAsP78a053Vw/edit?usp=sharing
