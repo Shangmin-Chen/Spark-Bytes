@@ -50,7 +50,7 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = _debug_mode
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost', 'sparkbytes-cbcb12916fe3.herokuapp.com'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost', 'spark-bytes.shangmin.me'])
 
 
 # Application definition
@@ -197,9 +197,9 @@ AUTH0_CLIENT_ID = env('AUTH0_CLIENT_ID', default='')
 AUTH0_CLIENT_SECRET = env('AUTH0_CLIENT_SECRET', default='')
 if not DEBUG and not AUTH0_CLIENT_SECRET:
     raise ValueError("AUTH0_CLIENT_SECRET must be set in production!")
+# Callback URL - set via environment variable for production
 # Use production callback URL if DEBUG is False (production)
-# Note: DEBUG is defined above, so we can reference it here
-default_callback = 'https://sparkbytes-cbcb12916fe3.herokuapp.com/auth0/callback/' if not DEBUG else 'http://127.0.0.1:8000/auth0/callback/'
+default_callback = 'https://spark-bytes.shangmin.me/auth0/callback/' if not DEBUG else 'http://127.0.0.1:8000/auth0/callback/'
 AUTH0_CALLBACK_URL = env('AUTH0_CALLBACK_URL', default=default_callback)
 AUTH0_API_IDENTIFIER = env('AUTH0_API_IDENTIFIER', default='https://your-api-identifier/')
 AUTH0_JWKS_URI = f"https://{AUTH0_DOMAIN}/.well-known/jwks.json"
