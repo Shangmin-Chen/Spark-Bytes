@@ -18,8 +18,12 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Initialize environment variables
-env = environ.Env()
-environ.Env.read_env()  # Read the .env file
+env = environ.Env(
+    # Set casting and default values
+    DEBUG=(bool, False)
+)
+# Read the .env file from the spark_bytes directory
+environ.Env.read_env(os.path.join(BASE_DIR, 'spark_bytes', '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
